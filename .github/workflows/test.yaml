@@ -1,0 +1,22 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  fetch-pr-number:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch PR Number
+        id: fetch-pr-number
+        run: |
+          echo "::set-output name=pr_number::$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)"
+
+  fetch-pr-labels:
+    needs: fetch-pr-number
+    uses: ./.github/workflows/version-bump.yaml
+    with:
+      pull_request_number: ${{ needs.fetch-pr-number.outputs.pr_number }}

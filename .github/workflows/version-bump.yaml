@@ -1,0 +1,25 @@
+name: Fetch PR Labels
+on:
+  workflow_call:
+    inputs:
+      pull_request_number:
+        required: true
+        type: string
+
+jobs:
+  fetch-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch labels from merged pull request
+        id: fetch-labels
+        run: |
+          PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}
+          LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels" | jq -r '.[].name')
+          BUMP="minor"
+          for label in $LABELS; do
+            if [[ "$label" =~ ^(major|minor|patch)$ ]]; then
+              BUMP="$label"
+              break
+            fi
+          done
+          echo "::set-output name=bump::$BUMP"
