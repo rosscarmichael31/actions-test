@@ -11,6 +11,10 @@ jobs:
   fetch-labels:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug Info
+        run: |
+          echo "Event payload: $GITHUB_EVENT_PATH"
+          echo "PR Number from input: ${{ inputs.pull_request_number }}"
       - name: Fetch labels from merged pull request
         id: fetch-labels
         run: |
