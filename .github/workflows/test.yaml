@@ -27,7 +27,7 @@ jobs:
         run: |
           PULL_REQUEST_NUMBER=${{ steps.fetch-pr-number.pr_number }}
           echo "Fetching labels for pull request number: $PULL_REQUEST_NUMBER"
-          LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels")
+          LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/1/labels")
           echo "Labels found: $LABELS"
           BUMP="minor"
           for label in $LABELS; do
