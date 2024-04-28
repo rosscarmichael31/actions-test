@@ -70,9 +70,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ steps.tag.outputs.new_version }}
-        run: |
-          echo "::set-env name=TAG::${{ steps.meta_prod.outputs.tags }}"
-          echo "::set-env name=LABEL::${{ steps.meta_prod.outputs.labels }}"
+        env:
+          TAGS: ${{ steps.meta_prod.outputs.tags }}"
+          LABELS: ${{ steps.meta_prod.outputs.labels }}"
 
 
       # If for dev, use branch name for snapshot
@@ -85,9 +85,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=${{ github.ref_name }}-
-        run: |
-          echo "::set-env name=TAG::${{ steps.meta_dev.outputs.tags }}"
-          echo "::set-env name=LABEL::${{ steps.meta_dev.outputs.labels }}"
+        env:
+          TAGS: ${{ steps.meta_meta.outputs.tags }}"
+          LABELS: ${{ steps.meta_meta.outputs.labels }}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
