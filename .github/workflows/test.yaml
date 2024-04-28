@@ -71,8 +71,8 @@ jobs:
           tags: |
             type=raw,value=${{ steps.tag.outputs.new_version }}
         env:
-          TAGS: ${{ steps.meta_prod.outputs.tags }}"
-          LABELS: ${{ steps.meta_prod.outputs.labels }}"
+          TAGS: ${{ steps.meta_prod.outputs.tags }}
+          LABELS: ${{ steps.meta_prod.outputs.labels }}
 
 
       # If for dev, use branch name for snapshot
@@ -86,8 +86,8 @@ jobs:
           tags: |
             type=sha,prefix=${{ github.ref_name }}-
         env:
-          TAGS: ${{ steps.meta_dev.outputs.tags }}"
-          LABELS: ${{ steps.meta_dev.outputs.labels }}"
+          TAGS: ${{ steps.meta_dev.outputs.tags }}
+          LABELS: ${{ steps.meta_dev.outputs.labels }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
