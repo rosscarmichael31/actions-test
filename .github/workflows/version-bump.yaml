@@ -20,7 +20,7 @@ jobs:
         run: |
           PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}
           echo "Fetching labels for pull request number: $PULL_REQUEST_NUMBER"
-          LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels" | jq -r '.[] | .name')
+          LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels")
           echo "Labels found: $LABELS"
           BUMP="minor"
           for label in $LABELS; do
