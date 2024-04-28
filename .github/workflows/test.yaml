@@ -129,11 +129,9 @@ jobs:
 
       - name: Update image tag in stack_definition.yaml
         uses: mikefarah/yq@v4.43.1
-        env:
-          TAGS: ${{ env.NEW_VERSION }}
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $NEW_VERSION' stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = ${{ env.NEW_VERSION }}' stack-definition.yaml
 
       - name: Echo stack-definition.yaml
         run: |
