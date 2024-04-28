@@ -25,7 +25,7 @@ stackDef:
       bulk-shipment-service:
         image:
           name: ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime
-          tag: 4-merge-de4ad7f
+          tag: 5-merge-bba68a6
         ingress:
           enabled: true
           path: /
