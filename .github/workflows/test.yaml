@@ -12,8 +12,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/appruntime
-  TAGS: ""
-  LABELS: ""
 
 permissions:
   contents: write
@@ -70,10 +68,14 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ steps.tag.outputs.new_version }}
-        run: |
-          echo "::set-env name=TAG::${{ steps.meta_prod.outputs.tags }}"
-          echo "::set-env name=LABEL::${{ steps.meta_prod.outputs.labels }}"
 
+      # Set environment variables for prod
+      - name: Set environment variables for Production
+        if: ${{ github.ref_name == 'master' }}
+        run: |
+          echo "TAGS=${{ steps.meta_prod.outputs.tags }}" >> $GITHUB_ENV
+          echo "LABELS=${{ steps.meta_prod.outputs.labels }}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${{ steps.meta_prod.outputs.version }}" >> $GITHUB_ENV
 
       # If for dev, use branch name for snapshot
       - name: Extract metadata (tags, labels) for Docker - Development
@@ -85,20 +87,33 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=${{ github.ref_name }}-
+
+
+      # Set environment variables for later use
+      - name: Set environment variables for Development
+        if: ${{ github.ref_name != 'master' }}
         run: |
-          echo "::set-env name=TAG::${{ steps.meta_dev.outputs.tags }}"
-          echo "::set-env name=LABEL::${{ steps.meta_dev.outputs.labels }}"
+          echo "TAGS=${{ steps.meta_dev.outputs.tags }}" >> $GITHUB_ENV
+          echo "LABELS=${{ steps.meta_dev.outputs.labels }}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${{ steps.meta_dev.outputs.version }}" >> $GITHUB_ENV
+
 
       - name: Build and push Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
           context: .
-          push: ${{ github.ref_name == 'master' }}
+          push: true
           tags: ${{ env.TAGS }}
           labels: ${{ env.LABELS }}
           secrets: |
             "GRGIT_USER=${{ secrets.GRGIT_USER }}"
             "GRGIT_PASS=${{ secrets.GRGIT_PASS }}"
+
+      - name: Debug
+        run: |
+          echo "$TAGS"
+          echo "$LABELS"
+          echo "$NEW_VERSION"
 
       - name: Create Release
         id: create_release
@@ -107,24 +122,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.TAGS }}
-          release_name: ${{ env.TAGS }}
+          tag_name: ${{ env.NEW_VERSION }}
+          release_name: ${{ env.NEW_VERSION }}
           draft: false
           prerelease: false
 
       - name: Update image tag in stack_definition.yaml
-        uses: mikefarah/yq@4.43.1
-        env:
-          TAGS: ${{ env.TAGS }}
+        uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $TAGS' appruntime/stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
+
+      - name: Echo stack-definition.yaml
+        run: |
+          cat stack-definition.yaml
 
       - name: Commit & Push changes
         uses: actions-js/push@v1.5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          message: Update stack-definition.yaml image tag to v${{ env.TAGS }}
+          message: Update stack-definition.yaml image tag to v${{ env.NEW_VERSION }}
           branch: ${{ github.head_ref }}
 
 
