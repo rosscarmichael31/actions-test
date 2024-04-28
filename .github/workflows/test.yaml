@@ -13,6 +13,11 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v2
 
+    - name: Debug current directory
+      run: |
+        pwd
+        ls
+
     - name: Update image tag in stack_definition.yaml
       run: |
         IMAGE_VERSION=1.12
