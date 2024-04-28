@@ -16,7 +16,7 @@ jobs:
     - name: Debug current directory
       run: |
         pwd
-        ls
+        ls appruntime
 
     - name: Update image tag in stack_definition.yaml
       run: |
