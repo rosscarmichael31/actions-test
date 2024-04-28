@@ -29,7 +29,8 @@ jobs:
       uses: mikefarah/yq@master
       with:
         cmd: |
-          yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = 1.12' stack-definition.yaml 
+          IMAGE_VERSION=1.13
+          yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $IMAGE_VERSION' stack-definition.yaml 
 
 
     - name: Verify
