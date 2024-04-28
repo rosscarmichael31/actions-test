@@ -100,6 +100,11 @@ jobs:
             "GRGIT_USER=${{ secrets.GRGIT_USER }}"
             "GRGIT_PASS=${{ secrets.GRGIT_PASS }}"
 
+      - name: Debug
+        run: |
+          echo "$TAGS"
+          echo "$LABELS"
+
       - name: Create Release
         id: create_release
         if: ${{ github.ref_name == 'master' }}
