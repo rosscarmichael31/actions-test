@@ -28,7 +28,7 @@ jobs:
       with:
         cmd: |
           IMAGE_VERSION=1.12
-          yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $IMAGE_VERSION' 'stack-definition.yaml'
+          yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = 1.12' stack-definition.yaml'
 
 
     - name: Verify
