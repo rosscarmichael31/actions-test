@@ -118,7 +118,7 @@ jobs:
           TAGS: ${{ env.TAGS }}
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $TAGS' appruntime/stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $TAGS' stack-definition.yaml
 
       - name: Commit & Push changes
         uses: actions-js/push@v1.5
