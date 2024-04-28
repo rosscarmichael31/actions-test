@@ -1,0 +1,74 @@
+version: "0.1"
+stackDef:
+  metadata:
+    applicationDomain: wwl
+    impact: minimal
+    dataClassification: internal
+    owner: world-wide-logistics
+  parameters:
+    spring-profiles-active:
+      type: string
+    replicas:
+      type: integer
+    datasource:
+      type: string
+    activemq-broker-url:
+      type: list
+    keycloak:
+      type: string
+    wwlproxy:
+      type: string
+    allocat:
+      type: string
+  resources:
+    applications:
+      bulk-shipment-service:
+        image:
+          name: ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime
+          tag: fix-prometheus-ae537c4
+        ingress:
+          enabled: true
+          path: /
+        metrics:
+          path: /bulk-shipment-service/actuator/prometheus
+          port: 8080
+        replicas: "{{ $env['replicas'] }}"
+        scaling:
+          maximum: 4
+          cpu:
+            utilisation: 60
+        probes:
+          liveness:
+            httpGet:
+              path: /bulk-shipment-service/actuator/health
+          readiness:
+            httpGet:
+              path: /bulk-shipment-service/actuator/health
+        environmentVariables:
+          SPRING_PROFILES_ACTIVE:
+            value: "{{ $env['spring-profiles-active'] }}"
+          SPRING_DATASOURCE_USERNAME:
+            value: bss_owner
+          KEYCLOAK_CLIENT_SECRET:
+            secretRef: keycloak-client-secret
+          SPRING_DATASOURCE_PASSWORD:
+            secretRef: spring-datasource-password
+    secrets:
+      keycloak-client-secret:
+        version: 3
+      spring-datasource-password:
+        version: 2
+    connectors:
+      inbound:
+        type: INTERNAL
+      outbound:
+        - service: "{{ $env['datasource'] }}"
+          protocol: "cockroachdb"
+        - service: "{{ $env['keycloak'] }}"
+          protocol: "https"
+        - service: "{{ $env['activemq-broker-url'] }}"
+          protocol: "activemq-tls"
+        - service: "{{ $env['wwlproxy'] }}"
+          protocol: "https"
+        - service: "{{ $env['allocat'] }}"
+          protocol: "https"

@@ -1,0 +1,40 @@
+.gradle
+build
+out
+.DS_Store
+build
+out
+.gradle
+taskHistory.lock
+target
+
+#intellij
+*.ipr
+*.iml
+*.iws
+atlassian-ide-plugin.xml
+/.idea
+/.shelf
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+#cert
+cacerts
+
