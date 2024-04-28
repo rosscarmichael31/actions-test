@@ -137,6 +137,10 @@ jobs:
         run: |
           cat stack-definition.yaml
 
+      - name: Pull changes from remote repository
+        run: |
+          git pull origin ${{ github.head_ref }}
+
       - name: Commit & Push changes
         uses: actions-js/push@v1.5
         with:
