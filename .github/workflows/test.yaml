@@ -131,7 +131,7 @@ jobs:
         uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = ${{ env.NEW_VERSION }}' stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
 
       - name: Echo stack-definition.yaml
         run: |
