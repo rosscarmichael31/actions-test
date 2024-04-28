@@ -20,7 +20,7 @@ jobs:
           cat $GITHUB_EVENT_PATH
           PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
           echo "PR Number: $PR_NUMBER"
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "${{ format('pr_number={0}', steps.fetch-pr-number.outputs.pr_number) }}" >> $GITHUB_STATE
 
       - name: Bump
         id: bump
