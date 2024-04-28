@@ -9,36 +9,22 @@ on:
 jobs:
   fetch-pr-number:
     runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.fetch-pr-number.pr-number }}
     steps:
-      - name: Fetch PR Number
-        id: fetch-pr-number
-        run: |
-          echo "Event Path: $GITHUB_EVENT_PATH"
-          echo "Event Content:"
-          cat $GITHUB_EVENT_PATH
-          PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
-          echo "PR Number: $PR_NUMBER"
-          echo "${{ format('pr_number={0}', steps.fetch-pr-number.outputs.pr_number) }}" >> $GITHUB_STATE
+    - name: Update image tag in stack_definition.yaml
+      run: |
+        IMAGE_VERSION=1.12
+        sed -i "s|image:\s*name:\s*ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime\s*tag:\s*.*|image:\n  name: ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime\n  tag: ${IMAGE_VERSION}|" stack_definition.yaml
 
-      - name: Bump
-        id: bump
-        run: |
-          PULL_REQUEST_NUMBER=${{ steps.fetch-pr-number.pr_number }}
-          echo "Fetching labels for pull request number: $PULL_REQUEST_NUMBER"
-          LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/1/labels")
-          echo "Labels found: $LABELS"
-          BUMP="minor"
-          for label in $LABELS; do
-            if [[ "$label" =~ ^(major|minor|patch)$ ]]; then
-              BUMP="$label"
-              break
-            fi
-          done
-          echo "Selected bump version: $BUMP"
-          echo "::set-output name=bump::$BUMP"
-        
+    - name: Commit and push changes
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git add stack_definition.yaml
+        git commit -m "Update image version in stack_definition.yaml"
+        git push
+      
+
+
 
 #  fetch-pr-labels:
 #    needs: fetch-pr-number
