@@ -12,8 +12,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/appruntime
-  TAGS: ""
-  LABELS: ""
 
 permissions:
   contents: write
@@ -70,9 +68,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ steps.tag.outputs.new_version }}
-        env:
-          TAGS: ${{ steps.meta_prod.outputs.tags }}
-          LABELS: ${{ steps.meta_prod.outputs.labels }}
 
       # Set environment variables for prod
       - name: Set environment variables for Production
@@ -91,9 +86,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=${{ github.ref_name }}-
-        env:
-          TAGS: ${{ steps.meta_dev.outputs.tags }}
-          LABELS: ${{ steps.meta_dev.outputs.labels }}
+
 
       # Set environment variables for later use
       - name: Set environment variables for Development
