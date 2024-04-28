@@ -74,6 +74,13 @@ jobs:
           TAGS: ${{ steps.meta_prod.outputs.tags }}
           LABELS: ${{ steps.meta_prod.outputs.labels }}
 
+      # Set environment variables for prod
+      - name: Set environment variables for Production
+        if: ${{ github.ref_name == 'master' }}
+        run: |
+          echo "::set-env name=TAGS::${{ steps.meta_prod.outputs.tags }}"
+          echo "::set-env name=LABELS::${{ steps.meta_prod.outputs.labels }}"
+
 
       # If for dev, use branch name for snapshot
       - name: Extract metadata (tags, labels) for Docker - Development
@@ -88,6 +95,13 @@ jobs:
         env:
           TAGS: ${{ steps.meta_dev.outputs.tags }}
           LABELS: ${{ steps.meta_dev.outputs.labels }}
+
+      # Set environment variables for later use
+      - name: Set environment variables for Development
+        if: ${{ github.ref_name != 'master' }}
+        run: |
+          echo "::set-env name=TAGS::${{ steps.meta_dev.outputs.tags }}"
+          echo "::set-env name=LABELS::${{ steps.meta_dev.outputs.labels }}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
