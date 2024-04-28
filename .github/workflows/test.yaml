@@ -75,6 +75,7 @@ jobs:
         run: |
           echo "TAGS=${{ steps.meta_prod.outputs.tags }}" >> $GITHUB_ENV
           echo "LABELS=${{ steps.meta_prod.outputs.labels }}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${{ steps.meta_prod.outputs.version }}" >> $GITHUB_ENV
 
       # If for dev, use branch name for snapshot
       - name: Extract metadata (tags, labels) for Docker - Development
@@ -94,6 +95,8 @@ jobs:
         run: |
           echo "TAGS=${{ steps.meta_dev.outputs.tags }}" >> $GITHUB_ENV
           echo "LABELS=${{ steps.meta_dev.outputs.labels }}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${{ steps.meta_dev.outputs.version }}" >> $GITHUB_ENV
+
 
       - name: Build and push Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
@@ -110,6 +113,7 @@ jobs:
         run: |
           echo "$TAGS"
           echo "$LABELS"
+          echo "$NEW_VERSION"
 
       - name: Create Release
         id: create_release
@@ -118,18 +122,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.TAGS }}
-          release_name: ${{ env.TAGS }}
+          tag_name: ${{ env.NEW_VERSION }}
+          release_name: ${{ env.NEW_VERSION }}
           draft: false
           prerelease: false
 
       - name: Update image tag in stack_definition.yaml
         uses: mikefarah/yq@v4.43.1
         env:
-          TAGS: ${{ env.TAGS }}
+          TAGS: ${{ env.NEW_VERSION }}
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $TAGS' stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $NEW_VERSION' stack-definition.yaml
 
       - name: Echo stack-definition.yaml
         run: |
@@ -139,7 +143,7 @@ jobs:
         uses: actions-js/push@v1.5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          message: Update stack-definition.yaml image tag to v${{ env.TAGS }}
+          message: Update stack-definition.yaml image tag to v${{ env.NEW_VERSION }}
           branch: ${{ github.head_ref }}
 
 
