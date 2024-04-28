@@ -46,14 +46,14 @@ jobs:
 #          GRGIT_USER: ${{ secrets.GRGIT_USER }}
 #          GRGIT_PASS: ${{ secrets.GRGIT_PASS }}
 
-      # Only use sematic tagging if on master (live build)
+      # Only use sematic tagging if on main (live build)
       - name: Tag repository
         id: tag
-        if: ${{ github.ref_name == 'master' }}
+        if: ${{ github.ref_name == 'main' }}
         uses: mathieudutour/github-tag-action@v6.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          release_branches: master
+          release_branches: main
           default_bump: minor
           fetch_all_tags: true
 
@@ -61,7 +61,7 @@ jobs:
       # If for live, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
         id: meta_prod
-        if: ${{ github.ref_name == 'master' }}
+        if: ${{ github.ref_name == 'main' }}
 
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
@@ -71,7 +71,7 @@ jobs:
 
       # Set environment variables for prod
       - name: Set environment variables for Production
-        if: ${{ github.ref_name == 'master' }}
+        if: ${{ github.ref_name == 'main' }}
         run: |
           echo "TAGS=${{ steps.meta_prod.outputs.tags }}" >> $GITHUB_ENV
           echo "LABELS=${{ steps.meta_prod.outputs.labels }}" >> $GITHUB_ENV
@@ -80,7 +80,7 @@ jobs:
       # If for dev, use branch name for snapshot
       - name: Extract metadata (tags, labels) for Docker - Development
         id: meta_dev
-        if: ${{ github.ref_name != 'master' }}
+        if: ${{ github.ref_name != 'main' }}
 
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
@@ -91,7 +91,7 @@ jobs:
 
       # Set environment variables for later use
       - name: Set environment variables for Development
-        if: ${{ github.ref_name != 'master' }}
+        if: ${{ github.ref_name != 'main' }}
         run: |
           echo "TAGS=${{ steps.meta_dev.outputs.tags }}" >> $GITHUB_ENV
           echo "LABELS=${{ steps.meta_dev.outputs.labels }}" >> $GITHUB_ENV
@@ -117,7 +117,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        if: ${{ github.ref_name == 'master' }}
+        if: ${{ github.ref_name == 'main' }}
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -143,33 +143,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           message: Update stack-definition.yaml image tag to v${{ env.NEW_VERSION }}
           branch: ${{ github.head_ref }}
-
-
-#    - name: Update image tag in stack_definition.yaml
-#      uses: mikefarah/yq@master
-#      with:
-#        cmd: |
-#          IMAGE_VERSION=1.13
-#          yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $IMAGE_VERSION' stack-definition.yaml
-#
-#
-#    - name: Verify
-#      run: |
-#        cat ./stack-definition.yaml
-#
-#    - name: Commit and push changes
-#      run: |
-#        git config --global user.email "actions@github.com"
-#        git config --global user.name "GitHub Actions"
-#        git add stack-definition.yaml
-#        git commit -m "Update image version in stack_definition.yaml"
-#        git push
-
-
-
-
-#  fetch-pr-labels:
-#    needs: fetch-pr-number
-#    uses: ./.github/workflows/version-bump.yaml
-#    with:
-#      pull_request_number: ${{ needs.fetch-pr-number.outputs.pr_number }}
