@@ -9,6 +9,8 @@ on:
 jobs:
   fetch-pr-number:
     runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.fetch-pr-number.pr-number }}
     steps:
       - name: Fetch PR Number
         id: fetch-pr-number
@@ -18,8 +20,7 @@ jobs:
           cat $GITHUB_EVENT_PATH
           PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
           echo "PR Number: $PR_NUMBER"
-          echo "::set-output name=pr_number::$PR_NUMBER"
-        
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
   fetch-pr-labels:
     needs: fetch-pr-number
