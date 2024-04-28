@@ -23,6 +23,10 @@ jobs:
         IMAGE_VERSION=1.12
         sed -i "s|image:\s*name:\s*ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime\s*tag:\s*.*|image:\n  name: ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime\n  tag: ${IMAGE_VERSION}|" stack-definition.yaml
 
+    - name: Verify
+      run: |
+        cat ./stack-definition.yaml
+
     - name: Commit and push changes
       run: |
         git config --global user.email "actions@github.com"
