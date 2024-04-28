@@ -18,7 +18,6 @@ jobs:
           cat $GITHUB_EVENT_PATH
           PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
           echo "PR Number: $PR_NUMBER"
-          echo "$PR_NUMBER" >> $GITHUB_OUTPUT
           echo "::set-output name=pr_number::$PR_NUMBER"
         
 
