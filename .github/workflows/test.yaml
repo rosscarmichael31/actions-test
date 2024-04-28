@@ -25,7 +25,7 @@ jobs:
       - name: Bump
         id: bump
         run: |
-          PULL_REQUEST_NUMBER=${{ steps.fetch-pr-number.pull_request_number }}
+          PULL_REQUEST_NUMBER=${{ steps.fetch-pr-number.pr_number }}
           echo "Fetching labels for pull request number: $PULL_REQUEST_NUMBER"
           LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PULL_REQUEST_NUMBER}/labels")
           echo "Labels found: $LABELS"
