@@ -131,6 +131,10 @@ jobs:
           cmd: |
             yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = $TAGS' stack-definition.yaml
 
+      - name: Echo stack-definition.yaml
+        run: |
+          cat stack-definition.yaml
+
       - name: Commit & Push changes
         uses: actions-js/push@v1.5
         with:
