@@ -1,10 +1,10 @@
 # Accept a parameter during build
-ARG ENVIRONMENT
+ARG stack
 
 FROM nginx:mainline-alpine3.18-perl
 
 # Copy config files based on the value of ENVIRONMENT parameter
-COPY nginx-${ENVIRONMENT}.conf /etc/nginx/nginx.conf
+COPY nginx-$stack.conf /etc/nginx/nginx.conf
 
 # HTTP
 EXPOSE 8080
