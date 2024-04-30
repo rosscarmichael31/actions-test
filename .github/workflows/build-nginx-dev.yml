@@ -59,7 +59,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           file: nginx/Dockerfile
           build-args: |
-            ENVIRONMENT=dev
+            stack=dev
 
       - name: Print container version
         if: ${{ steps.tag.outputs.new_version != 'undefined' }}
