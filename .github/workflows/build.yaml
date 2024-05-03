@@ -23,8 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
-        run: echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
-
+        run: |
+          echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
+          echo "${{ toJson(github.event.pull_request) }}"
 
   build-and-push:
     needs: build-check
@@ -122,11 +123,13 @@ jobs:
       - name: Determine branch to push changes to
         id: branch
         run: |
-          if [ "${{ github.event.pull_request.merged }}" == true ]; then
+          if [ ${{ github.event.pull_request.merged }} == true ]; then
             echo "::set-output name=branch::"${{ github.event.pull_request.base.ref }}""
           else
             echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
           fi
+        env:
+
 
       - name: Update stack-definition.yaml
         id: commit
