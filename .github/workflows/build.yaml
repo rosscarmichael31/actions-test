@@ -54,18 +54,6 @@ jobs:
           minor-label: minor
           patch-label: patch
 
-
-      # Only use sematic tagging if on main (prod build)
-      - name: Tag repository
-        id: tag
-        if: ${{ github.ref_name == 'main' }}
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          release_branches: main
-          default_bump: ${{ needs.version-bump.outputs.bump }}
-          fetch_all_tags: true
-
       # If for prod, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
         id: meta_prod
