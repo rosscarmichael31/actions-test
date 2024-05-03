@@ -27,6 +27,7 @@ jobs:
         run: echo "A merged PR or manual triggered the build - can continue"
 
   version-bump:
+    needs: build-check
     runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.check-labels.outputs.labels }}
@@ -37,9 +38,9 @@ jobs:
           mode: minimum
           count: 1
           labels: |
-            feature-1
-            feature-2
-            feature-3
+            patch
+            minor
+            major
       - run: |
           echo "Enabled Features:"
           for f in $(echo "{{steps.check-labels.outputs.labels}}" | sed "s/,/ /g")
