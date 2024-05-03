@@ -2,7 +2,7 @@ FROM nginx:mainline-alpine3.18-perl
 
 ARG env
 
-COPY nginx/nginx-dev.conf /etc/nginx/nginx.conf
+COPY nginx-dev.conf /etc/nginx/nginx.conf
 
 # HTTP
 EXPOSE 8080
