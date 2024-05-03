@@ -8,7 +8,6 @@ on:
       - closed
   workflow_dispatch:
 
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/build
@@ -24,9 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
-        run: echo "A merged PR or manual triggered the build - can continue"
+        run: echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
 
   version-bump:
+#    if: ${{ !github.event_name = 'workflow_dispatch' || github.event.pull_request.merged == false }}
     needs: build-check
     runs-on: ubuntu-latest
     outputs:
@@ -41,12 +41,7 @@ jobs:
             patch
             minor
             major
-      - run: |
-          echo "Enabled Features:"
-          for f in $(echo "${{ steps.check-labels.outputs.labels }}" | sed "s/,/ /g")
-          do
-            echo "$f"
-          done
+          exit-type: success
 
   build-and-push:
     needs: version-bump
@@ -65,6 +60,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine version bump
+        id: version
+        run: |
+          if [ "${{ needs.version-bump.outputs.status }}" == "success" ]; then
+            echo "::set-output name=bump::"${{ steps.version-bump.outputs.bump }}""
+          else
+            echo "::set-output name=bump::minor"
+          fi
+          
+
       # Only use sematic tagging if on main (prod build)
       - name: Tag repository
         id: tag
@@ -73,7 +78,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: main
-          default_bump: ${{ needs.version-bump.outputs.bump }}
+          default_bump: ${{ steps.version.outputs.bump }}
           fetch_all_tags: true
 
       # If for prod, use the tag from 'Tag repository' step
@@ -157,7 +162,7 @@ jobs:
           skip_fetch: false
           branch: ${{ steps.branch.outputs.branch }}
           commit_message: |
-            Update stack-definition.yaml image version
+            Update image tag to ${{ env.NEW_VERSION }}
 
       - name: Print container version
         if: ${{ env.NEW_VERSION != 'undefined' }}
