@@ -26,23 +26,22 @@ jobs:
         run: echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
 
   version-bump:
-    needs: build-check
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
     outputs:
-      bump: ${{ steps.check-labels.outputs.labels }}
+      bump: ${{ steps.get-version-bump.outputs.bump }}
     steps:
-      - id: check-labels
-        uses: mheap/github-action-required-labels@v5
-        with:
-          mode: exactly
-          count: 1
-          labels: |
-            patch
-            minor
-            major
+      - name: Get version bump
+        id: get-version-bump
+        run: |
+          for label in "${{ github.event.pull_request.labels.*.name }}"; do
+            if [[ "$label" =~ ^(major|minor|patch)$ ]]; then
+              BUMP="$label"
+              break
+            fi
+          done
+          echo "BUMP: $BUMP"
+          echo "::set-output name=bump::$BUMP"
+
 
   build-and-push:
     needs: version-bump
