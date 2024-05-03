@@ -8,7 +8,6 @@ on:
       - closed
   workflow_dispatch:
 
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/build
@@ -24,28 +23,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
-        run: echo "A merged PR or manual triggered the build - can continue"
+        run: echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
 
   version-bump:
     needs: build-check
     runs-on: ubuntu-latest
     outputs:
-      bump: ${{ steps.check-labels.outputs.labels }}
+      bump: ${{ steps.get-version-bump.outputs.bump }}
     steps:
-      - id: check-labels
-        uses: mheap/github-action-required-labels@v5
-        with:
-          mode: exactly
-          count: 1
-          labels: |
-            patch
-            minor
-            major
-      - run: |
-          echo "Enabled Features:"
-          for f in $(echo "${{ steps.check-labels.outputs.labels }}" | sed "s/,/ /g")
-          do
-            echo "$f"
+      - name: Get version bump
+        id: get-version-bump
+        run: |
+          echo "${{ toJson(github.event.pull_request.labels.*.name) }}"
+          
+          for label in "${{ github.event.pull_request.labels.*.name }}"; do
+            if [[ "$label" =~ ^(major|minor|patch)$ ]]; then
+              echo "BUMP: "$label""
+              echo "::set-output name=bump::$label"
+              break
+            fi
           done
 
   build-and-push:
@@ -64,6 +60,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          
 
       # Only use sematic tagging if on main (prod build)
       - name: Tag repository
@@ -157,7 +154,7 @@ jobs:
           skip_fetch: false
           branch: ${{ steps.branch.outputs.branch }}
           commit_message: |
-            Update stack-definition.yaml image version
+            Update image tag to ${{ env.NEW_VERSION }}
 
       - name: Print container version
         if: ${{ env.NEW_VERSION != 'undefined' }}
