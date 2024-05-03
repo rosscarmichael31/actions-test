@@ -34,7 +34,7 @@ jobs:
       - name: Get version bump
         id: get-version-bump
         run: |
-          echo "${{ github.event.pull_request.labels }}"
+          echo "${{ github.event.pull_request }}"
           
           for label in "${{ github.event.pull_request.labels.*.name }}"; do
             if [[ "$label" =~ ^(major|minor|patch)$ ]]; then
