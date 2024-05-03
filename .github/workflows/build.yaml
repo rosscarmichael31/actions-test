@@ -92,9 +92,6 @@ jobs:
           push: true
           tags: ${{ env.TAGS }}
           labels: ${{ env.LABELS }}
-          secrets: |
-            "GRGIT_USER=${{ secrets.GRGIT_USER }}"
-            "GRGIT_PASS=${{ secrets.GRGIT_PASS }}"
 
       - name: Create GitHub release
         id: create_release
