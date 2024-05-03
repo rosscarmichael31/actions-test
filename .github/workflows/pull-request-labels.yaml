@@ -2,6 +2,11 @@ name: Pull Request Labels
 on:
   pull_request:
     types: [opened, labeled, unlabeled, synchronize]
+  workflow_call:
+    outputs:
+      bump:
+        description: "Semver bump"
+        value: ${{ jobs.label.outputs.labels }}
 jobs:
   label:
     runs-on: ubuntu-latest
@@ -21,4 +26,4 @@ jobs:
             minor
             major
           add_comment: true
-          message: "Add a patch, minor or major label to the PR for the build before merging"
+          message: "Add a patch, minor or major label to the PR for the build before merging."

@@ -19,8 +19,36 @@ permissions:
   id-token: write
 
 jobs:
+  build-check:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check which event triggered build
+        run: echo "A merged PR or manual triggered the build - can continue"
+
+  version-bump:
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.check-labels.outputs.labels }}
+    steps:
+      - id: check-labels
+        uses: mheap/github-action-required-labels@v5
+        with:
+          mode: minimum
+          count: 1
+          labels: |
+            feature-1
+            feature-2
+            feature-3
+      - run: |
+          echo "Enabled Features:"
+          for f in $(echo "{{steps.check-labels.outputs.labels}}" | sed "s/,/ /g")
+          do
+            echo "$f"
+          done
+
   build-and-push:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true}}
+    needs: version-bump
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
