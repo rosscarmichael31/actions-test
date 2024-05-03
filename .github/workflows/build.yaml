@@ -30,12 +30,12 @@ jobs:
     needs: build-check
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.check-labels.outputs.labels }}
+      bump: ${{ steps.check-labels.outputs.labels }}
     steps:
       - id: check-labels
         uses: mheap/github-action-required-labels@v5
         with:
-          mode: minimum
+          mode: exactly
           count: 1
           labels: |
             patch
@@ -73,7 +73,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: main
-          default_bump: minor
+          default_bump: ${{ needs.version-bump.outputs.bump }}
           fetch_all_tags: true
 
       # If for prod, use the tag from 'Tag repository' step
@@ -138,7 +138,7 @@ jobs:
         uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' appruntime/stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
             cat appruntime/stack-definition.yaml
 
       - name: Update stack-definition.yaml
