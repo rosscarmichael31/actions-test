@@ -1,17 +1,17 @@
 name: Build
 
 on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
   workflow_dispatch:
-#  push:
-#    branches:
-#      - main
-#  pull_request:
-#    branches:
-#      - main
+
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/appruntime
+  IMAGE_NAME: ${{ github.repository }}/build
 
 permissions:
   contents: write
@@ -20,12 +20,14 @@ permissions:
 
 jobs:
   build-and-push:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        name: Checkout Code
+        name: Checkout Branch
         with:
           ref: ${{ github.head_ref }}
+          fetch-depth: 0
 
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
@@ -34,19 +36,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-#      - name: Install Java
-#        uses: actions/setup-java@9704b39bf258b59bc04b50fa2dd55e9ed76b47a8 # v4.1.0
-#        with:
-#          distribution: "temurin"
-#          java-version: "17"
-#
-#      - name: Build and test code
-#        run: ./gradlew build -x integrationTest --no-daemon
-#        env:
-#          GRGIT_USER: ${{ secrets.GRGIT_USER }}
-#          GRGIT_PASS: ${{ secrets.GRGIT_PASS }}
-
-      # Only use sematic tagging if on main (live build)
+      # Only use sematic tagging if on main (prod build)
       - name: Tag repository
         id: tag
         if: ${{ github.ref_name == 'main' }}
@@ -57,8 +47,7 @@ jobs:
           default_bump: minor
           fetch_all_tags: true
 
-
-      # If for live, use the tag from 'Tag repository' step
+      # If for prod, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
         id: meta_prod
         if: ${{ github.ref_name == 'main' }}
@@ -88,8 +77,7 @@ jobs:
           tags: |
             type=sha,prefix=${{ github.ref_name }}-
 
-
-      # Set environment variables for later use
+      # Set environment variables for dev
       - name: Set environment variables for Development
         if: ${{ github.ref_name != 'main' }}
         run: |
@@ -97,25 +85,19 @@ jobs:
           echo "LABELS=${{ steps.meta_dev.outputs.labels }}" >> $GITHUB_ENV
           echo "NEW_VERSION=${{ steps.meta_dev.outputs.version }}" >> $GITHUB_ENV
 
-
-      - name: Build and push Docker image
+      - name: Build and push Docker image to ghcr.io
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: .
+          context: ./nginx
           push: true
           tags: ${{ env.TAGS }}
           labels: ${{ env.LABELS }}
+          file: Dockerfile_appruntime
           secrets: |
             "GRGIT_USER=${{ secrets.GRGIT_USER }}"
             "GRGIT_PASS=${{ secrets.GRGIT_PASS }}"
 
-      - name: Debug
-        run: |
-          echo "$TAGS"
-          echo "$LABELS"
-          echo "$NEW_VERSION"
-
-      - name: Create Release
+      - name: Create GitHub release
         id: create_release
         if: ${{ github.ref_name == 'main' }}
         uses: actions/create-release@v1
@@ -131,19 +113,19 @@ jobs:
         uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' appruntime/stack-definition.yaml
+            cat appruntime/stack-definition.yaml
 
-      - name: Echo stack-definition.yaml
-        run: |
-          cat stack-definition.yaml
-
-      - name: Pull changes from remote repository
-        run: |
-          git pull origin ${{ github.head_ref }}
-
-      - name: Commit & Push changes
-        uses: actions-js/push@v1.5
+      - name: Update stack-definition.yaml
+        id: commit
+        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          message: Update stack-definition.yaml image tag to v${{ env.NEW_VERSION }}
-          branch: ${{ github.head_ref }}
+          skip_fetch: false
+          commit_message: |
+            Update stack-definition.yaml image version
+
+      - name: Print container version
+        if: ${{ env.NEW_VERSION != 'undefined' }}
+        run: |
+          echo "New container version: ${{ env.NEW_VERSION }}"
+          echo ':package: New container version: `${{ env.NEW_VERSION }}`' >> $GITHUB_STEP_SUMMARY
