@@ -16,6 +16,9 @@ permissions:
   contents: write
   packages: write
   id-token: write
+  pull-requests: read
+  issues: read
+
 
 jobs:
   build-check:
@@ -29,6 +32,7 @@ jobs:
 
   build-and-push:
     needs: build-check
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip build')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -45,8 +49,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bump and Tag Version
-        if: ${{ github.ref_name == 'main' }}
         id: tag
+        if: ${{ github.ref_name == 'main' }}
         uses: jefflinse/pr-semver-bump@v1.6.0
         with:
           mode: bump
@@ -54,6 +58,7 @@ jobs:
           major-label: major
           minor-label: minor
           patch-label: patch
+          base-branch: true
 
       # If for prod, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
