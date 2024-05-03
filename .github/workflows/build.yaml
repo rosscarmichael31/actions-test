@@ -43,7 +43,7 @@ jobs:
             major
       - run: |
           echo "Enabled Features:"
-          for f in $(echo "{{steps.check-labels.outputs.labels}}" | sed "s/,/ /g")
+          for f in $(echo "${{ steps.check-labels.outputs.labels }}" | sed "s/,/ /g")
           do
             echo "$f"
           done
