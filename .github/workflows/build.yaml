@@ -128,8 +128,7 @@ jobs:
           else
             echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
           fi
-        env:
-
+    
 
       - name: Update stack-definition.yaml
         id: commit
