@@ -26,7 +26,6 @@ jobs:
         run: echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
 
   version-bump:
-#    if: ${{ !github.event_name = 'workflow_dispatch' || github.event.pull_request.merged == false }}
     needs: build-check
     runs-on: ubuntu-latest
     outputs:
@@ -41,7 +40,6 @@ jobs:
             patch
             minor
             major
-          exit_type: success
 
   build-and-push:
     needs: version-bump
@@ -59,15 +57,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Determine version bump
-        id: version
-        run: |
-          if [ "${{ needs.version-bump.outputs.status }}" == "success" ]; then
-            echo "::set-output name=bump::"${{ steps.version-bump.outputs.bump }}""
-          else
-            echo "::set-output name=bump::minor"
-          fi
           
 
       # Only use sematic tagging if on main (prod build)
@@ -78,7 +67,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: main
-          default_bump: ${{ steps.version.outputs.bump }}
+          default_bump: ${{ needs.version-bump.outputs.bump }}
           fetch_all_tags: true
 
       # If for prod, use the tag from 'Tag repository' step
