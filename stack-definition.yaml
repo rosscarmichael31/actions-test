@@ -25,7 +25,7 @@ stackDef:
       bulk-shipment-service:
         image:
           name: ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime
-          tag: test-nginx-78ba26b
+          tag: test-nginx-3fe7c58
         ingress:
           enabled: true
           path: /
