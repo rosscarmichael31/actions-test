@@ -139,7 +139,7 @@ jobs:
         with:
           cmd: |
             yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
-            cat appruntime/stack-definition.yaml
+            cat stack-definition.yaml
 
       - name: Update stack-definition.yaml
         id: commit
