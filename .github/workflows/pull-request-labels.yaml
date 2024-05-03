@@ -1,0 +1,29 @@
+name: Pull Request Labels
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+  workflow_call:
+    outputs:
+      bump:
+        description: "Semver bump"
+        value: ${{ jobs.label.outputs.labels }}
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    outputs:
+      status: ${{ steps.check-labels.outputs.status }}
+    steps:
+      - id: check-labels
+        uses: mheap/github-action-required-labels@v5
+        with:
+          mode: exactly
+          count: 1
+          labels: |
+            patch
+            minor
+            major
+          add_comment: true
+          message: "Add a patch, minor or major label to the PR for the build before merging."
