@@ -34,11 +34,11 @@ jobs:
       - name: Get version bump
         id: get-version-bump
         run: |
-          echo ${{ github.event.pull_request.labels }}
+          echo "${{ github.event.pull_request.labels }}"
           
           for label in "${{ github.event.pull_request.labels.*.name }}"; do
             if [[ "$label" =~ ^(major|minor|patch)$ ]]; then
-              echo "BUMP: $label"
+              echo "BUMP: "$label""
               echo "::set-output name=bump::$label"
               break
             fi
