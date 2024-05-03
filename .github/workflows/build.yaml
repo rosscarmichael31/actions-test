@@ -28,6 +28,9 @@ jobs:
   version-bump:
     needs: build-check
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     outputs:
       bump: ${{ steps.check-labels.outputs.labels }}
     steps:
