@@ -41,7 +41,7 @@ jobs:
             patch
             minor
             major
-          exit-type: success
+          exit_type: success
 
   build-and-push:
     needs: version-bump
