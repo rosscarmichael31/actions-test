@@ -141,11 +141,22 @@ jobs:
             yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
             cat stack-definition.yaml
 
+      - name: Determine branch to push changes to
+        id: branch
+        run: |
+          if [ "${{ github.event.pull_request.merged }}" == true ]; then
+            echo "::set-output name=branch::"${{ github.event.pull_request.base.ref }}""
+          else
+            echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
+          fi
+
+
       - name: Update stack-definition.yaml
         id: commit
         uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
         with:
           skip_fetch: false
+          branch: ${{ if(github.event.pull_request.merged == true, github.event.pull_request.merged == 'true', github.event.pull_request.head.ref) || github.ref }}
           commit_message: |
             Update stack-definition.yaml image version
 
