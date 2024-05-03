@@ -25,26 +25,9 @@ jobs:
       - name: Check which event triggered build
         run: echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
 
-  version-bump:
-    needs: build-check
-    runs-on: ubuntu-latest
-    outputs:
-      bump: ${{ steps.get-version-bump.outputs.bump }}
-    steps:
-      - name: Get version bump
-        id: get-version-bump
-        run: |
-          echo "${{ toJson(github.event.pull_request.labels.*.name) }}"
-          for label in "${{ github.event.pull_request.labels.*.name }}"; do
-            if [[ "$label" =~ ^(major|minor|patch)$ ]]; then
-              echo "BUMP: $label"
-              echo "::set-output name=bump::$label"
-              break
-            fi
-          done
 
   build-and-push:
-    needs: version-bump
+    needs: bump-tag-version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -59,7 +42,18 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
+      - name: Bump and Tag Version
+        if: ${{ github.ref_name == 'main' }}
+        id: tag
+        uses: jefflinse/pr-semver-bump@v1.6.0
+        with:
+          mode: bump
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          major-label: major
+          minor-label: minor
+          patch-label: patch
+
 
       # Only use sematic tagging if on main (prod build)
       - name: Tag repository
@@ -81,7 +75,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ steps.tag.outputs.new_version }}
+            type=raw,value=${{ steps.tag.outputs.version }}
 
       # Set environment variables for prod
       - name: Set environment variables for Production
