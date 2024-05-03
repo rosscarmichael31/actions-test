@@ -73,6 +73,7 @@ jobs:
           echo "TAGS=${{ steps.meta_prod.outputs.tags }}" >> $GITHUB_ENV
           echo "LABELS=${{ steps.meta_prod.outputs.labels }}" >> $GITHUB_ENV
           echo "NEW_VERSION=${{ steps.meta_prod.outputs.version }}" >> $GITHUB_ENV
+          echo "${{ steps.meta_prod.outputs.version }}"
 
       # If for dev, use branch name for snapshot
       - name: Extract metadata (tags, labels) for Docker - Development
@@ -123,7 +124,7 @@ jobs:
       - name: Determine branch to push changes to
         id: branch
         run: |
-          if [ ${{ github.event.pull_request.merged }} == true ]; then
+          if [ ${{ github.event.pull_request.merged }} == "true" ]; then
             echo "::set-output name=branch::"${{ github.event.pull_request.base.ref }}""
           else
             echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
