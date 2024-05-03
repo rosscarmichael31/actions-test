@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  protect:
     runs-on: ubuntu-latest
     steps:
       - name: CI/CD
