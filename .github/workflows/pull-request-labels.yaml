@@ -1,0 +1,23 @@
+name: Pull Request Labels
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - id: check-labels
+        uses: mheap/github-action-required-labels@v5
+        with:
+          mode: minimum
+          count: 1
+          labels: |
+            feature-1
+            feature-2
+            feature-3
+      - run: |
+          echo "Enabled Features:"
+          for f in $(echo "{{steps.check-labels.outputs.labels}}" | sed "s/,/ /g")
+          do
+            echo "$f"
+          done
