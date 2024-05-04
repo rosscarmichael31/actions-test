@@ -19,13 +19,13 @@ permissions:
 
 jobs:
   build-check:
-    if: "contains(github.event.commits.*.message, 'Merge pull request') }}"
+#    if: "contains(github.event.commits.*.message, 'Merge pull request') }}"
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
         run: |
           echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
-          echo "${{ toJson(github.event.message) }}"
+          echo "${{ toJson(github.event) }}"
 
   build-and-push:
     needs: build-check
