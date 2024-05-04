@@ -61,7 +61,7 @@ jobs:
       # If for prod, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
         id: meta_prod
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' steps.tag.outputs.version != '' }}
 
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
