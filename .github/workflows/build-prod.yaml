@@ -58,6 +58,10 @@ jobs:
             skip build
           base-branch: true
 
+      - name: DEBUG
+        run: |
+          echo "${{ steps.tag.outputs.version  }}"
+
       # If for prod, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
         id: meta_prod
