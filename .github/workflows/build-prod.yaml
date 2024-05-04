@@ -50,6 +50,7 @@ jobs:
         with:
           mode: bump
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          require-release-info: true
           major-label: major
           minor-label: minor
           patch-label: patch
