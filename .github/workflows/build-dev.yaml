@@ -34,21 +34,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
-        id: meta_dev
+        id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=${{ github.ref_name }}-
 
-
-      # Set environment variables for dev
-      - name: Set environment variables for Development
+      - name: Set environment variables
         if: ${{ github.ref_name != 'main' }}
         run: |
-          echo "TAGS=${{ steps.meta_dev.outputs.tags }}" >> $GITHUB_ENV
-          echo "LABELS=${{ steps.meta_dev.outputs.labels }}" >> $GITHUB_ENV
-          echo "NEW_VERSION=${{ steps.meta_dev.outputs.version }}" >> $GITHUB_ENV
+          echo "TAGS=${{ steps.meta.outputs.tags }}" >> $GITHUB_ENV
+          echo "LABELS=${{ steps.meta.outputs.labels }}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${{ steps.meta.outputs.version }}" >> $GITHUB_ENV
 
       - name: Build and push Docker image to ghcr.io
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
@@ -66,7 +64,6 @@ jobs:
           cmd: |
             yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
             cat stack-definition.yaml
-
 
       - name: Update stack-definition.yaml
         id: commit
