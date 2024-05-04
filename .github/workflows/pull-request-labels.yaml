@@ -22,4 +22,5 @@ jobs:
           major-label: major
           minor-label: minor
           patch-label: patch
-          noop-labels: skip build
+          noop-labels:
+            skip build
