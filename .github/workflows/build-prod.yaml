@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   build-check:
-    if: ${{ !contains(github.event.head_commit.message, '[bot] Update image tag to') && !contains(github.event.pull_request.labels.*.name, 'skip build') }}
+    if: ${{ !contains(github.event.head_commit.message, '[bot] Update image tag to')  }}
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
@@ -54,13 +54,13 @@ jobs:
           major-label: major
           minor-label: minor
           patch-label: patch
-          noop-labels:
-            skip build
           base-branch: true
 
-      - name: DEBUG
+      - name: Check if tagging failed
+        if: ${{ failure() }}
         run: |
-          echo "${{ steps.tag.outputs.version  }}"
+          echo "Tagging step failed. Skipping the rest of the build."
+          exit 0  # Exit successfully to skip the rest of the build
 
       # If for prod, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
