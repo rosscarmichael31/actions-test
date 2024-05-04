@@ -8,6 +8,7 @@ on:
     branches:
       - main
 
+
 jobs:
   protect:
     runs-on: ubuntu-latest
