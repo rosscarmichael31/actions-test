@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   build-check:
-    if: ${{ github.event.message == "Merge pull request" }}
+    if: ${{ github.event.message == Merge pull request }}
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
