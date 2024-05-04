@@ -54,13 +54,15 @@ jobs:
           major-label: major
           minor-label: minor
           patch-label: patch
+          noop-labels:
+            skip build
           base-branch: true
 
-      - name: Check if tagging failed
-        if: ${{ failure() }}
+      - name: Check if build should be skipped
+        if: ${{ !steps.tag.outputs.version }}
         run: |
-          echo "Tagging step failed. Skipping the rest of the build."
-          exit 0  # Exit successfully to skip the rest of the build
+          echo "Skip build tag added -> skipping build."
+          exit 0 
 
       # If for prod, use the tag from 'Tag repository' step
       - name: Extract metadata (tags, labels) for Docker - Production
