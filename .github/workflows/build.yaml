@@ -19,13 +19,12 @@ permissions:
 
 jobs:
   build-check:
-#    if: "contains(github.event.commits.*.message, 'Merge pull request') }}"
+    if: "!contains(github.event.head_commit.message, '[bot] Update image tag to')"
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
         run: |
-          echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
-#          echo "${{ toJson(github.event) }}"
+          echo "Not triggered by a direct bot push -> continue"
 
   build-and-push:
     needs: build-check
@@ -142,7 +141,7 @@ jobs:
           skip_fetch: false
           branch: ${{ steps.branch.outputs.branch }}
           commit_message: |
-            Update image tag to ${{ env.NEW_VERSION }}
+            [bot] Update image tag to ${{ env.NEW_VERSION }}
 
       - name: Print container version
         if: ${{ env.NEW_VERSION != 'undefined' }}
