@@ -54,6 +54,7 @@ jobs:
           major-label: major
           minor-label: minor
           patch-label: patch
+          noop-labels: skip build
           base-branch: true
 
       # If for prod, use the tag from 'Tag repository' step
