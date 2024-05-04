@@ -4,7 +4,7 @@ stackDef:
     applicationDomain: wwl
     impact: minimal
     dataClassification: internal
-    owner: world-wide-logistics
+    owner: world-wide-logistic
   parameters:
     spring-profiles-active:
       type: string
