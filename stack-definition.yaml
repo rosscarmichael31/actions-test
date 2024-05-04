@@ -4,7 +4,7 @@ stackDef:
     applicationDomain: wwl
     impact: minimal
     dataClassification: internal
-    owner: world-wide-logistics
+    owner: world-wide-logistic
   parameters:
     spring-profiles-active:
       type: string
@@ -25,7 +25,7 @@ stackDef:
       bulk-shipment-service:
         image:
           name: ghcr.io/world-wide-logistics/bulk-shipment-service/appruntime
-          tag: 0.9.1
+          tag: test-push-882e59a
         ingress:
           enabled: true
           path: /
