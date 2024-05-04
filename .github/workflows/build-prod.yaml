@@ -1,9 +1,11 @@
-name: Build
+name: Build - Prod
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
 
 env:
   REGISTRY: ghcr.io
@@ -13,9 +15,6 @@ permissions:
   contents: write
   packages: write
   id-token: write
-  pull-requests: read
-  issues: read
-
 
 jobs:
   build-check:
@@ -24,7 +23,7 @@ jobs:
     steps:
       - name: Check which event triggered build
         run: |
-          echo "Not triggered by a direct bot push -> continue"
+          echo "Not triggered by a direct bot push to master-> continue"
 
   build-and-push:
     needs: build-check
@@ -132,7 +131,6 @@ jobs:
           else
             echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
           fi
-
 
       - name: Update stack-definition.yaml
         id: commit
