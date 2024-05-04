@@ -16,12 +16,12 @@ permissions:
 
 jobs:
   build-check:
-    if: ${{ github.ref_name == 'main' && !contains(github.event.head_commit.message, '[bot] Update image tag to') }}
+    if: ${{ !contains(github.event.head_commit.message, '[bot] Update image tag to') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check if build should continue
         run: |
-          echo "Triggered from bot push to main or illegal branch"
+          echo "Push to main is not from bot -> continue build"
 
   build-and-push:
     needs: build-check
@@ -66,14 +66,12 @@ jobs:
           tags: |
             type=raw,value=${{ steps.tag.outputs.version }}
 
-      # Set environment variables for prod
       - name: Set environment variables
         if: ${{ steps.tag.outputs.version }}
         run: |
           echo "TAGS=${{ steps.meta.outputs.tags }}" >> $GITHUB_ENV
           echo "LABELS=${{ steps.meta.outputs.labels }}" >> $GITHUB_ENV
           echo "NEW_VERSION=${{ steps.meta.outputs.version }}" >> $GITHUB_ENV
-          echo "${{ steps.meta_prod.outputs.version }}"
 
       - name: Build and push Docker image to ghcr.io
         if: ${{ steps.tag.outputs.version }}
@@ -105,15 +103,6 @@ jobs:
           cmd: |
             yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
             cat stack-definition.yaml
-
-#      - name: Determine branch to push changes to
-#        id: branch
-#        run: |
-#          if [ ${{ github.event.pull_request.merged }} == "true" ]; then
-#            echo "::set-output name=branch::"${{ github.event.pull_request.base.ref }}""
-#          else
-#            echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
-#          fi
 
       - name: Update stack-definition.yaml
         id: commit
