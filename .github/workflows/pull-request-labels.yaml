@@ -1,4 +1,4 @@
-name: Release Info
+name: Required labels
 
 permissions:
   contents: write
