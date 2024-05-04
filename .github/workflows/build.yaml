@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - main
-#  pull_request:
-#    branches:
-#      - main
-#    types:
-#      - closed
-#  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -25,13 +19,13 @@ permissions:
 
 jobs:
   build-check:
-#    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    if: ${{ github.event.message == "Merge pull request" }}
     runs-on: ubuntu-latest
     steps:
       - name: Check which event triggered build
         run: |
           echo "A merged PR or workflow_dispatch event has triggered the build -> can continue"
-          echo "${{ toJson(github.event) }}"
+          echo "${{ toJson(github.event.message) }}"
 
   build-and-push:
     needs: build-check
@@ -41,6 +35,7 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         name: Checkout Branch
         with:
+          token: ${{ secrets.PAT }}
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
@@ -93,6 +88,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=${{ github.ref_name }}-
+      
 
       # Set environment variables for dev
       - name: Set environment variables for Development
@@ -137,7 +133,7 @@ jobs:
           else
             echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
           fi
-    
+
 
       - name: Update stack-definition.yaml
         id: commit
