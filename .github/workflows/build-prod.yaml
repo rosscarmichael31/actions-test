@@ -55,13 +55,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get PR labels
+        id: pr-labels
+        uses: joerick/pr-labels-action@v1.0.8
+
       - name: Get bump
         run: |
-          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'major') }}" == "true" ]]; then
+          if [[ "${{ contains(steps.pr-labels.outputs.labels, 'major') }}" == "true" ]]; then
             echo "BUMP=major" >> $GITHUB_ENV
-          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" == "true" ]]; then
+          elif [[ "${{ contains(steps.pr-labels.outputs.labels, 'minor') }}" == "true" ]]; then
             echo "BUMP=minor" >> $GITHUB_ENV
-          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'patch') }}" == "true" ]]; then
+          elif [[ "${{ contains(contains(github.event.pull_request.labels.*.name, 'patch') }}" == "true" ]]; then
             echo "BUMP=patch" >> $GITHUB_ENV
           else
             echo "BUMP=${{ inputs.bump }}" >> $GITHUB_ENV
