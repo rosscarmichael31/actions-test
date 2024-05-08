@@ -65,7 +65,7 @@ jobs:
             echo "BUMP=major" >> $GITHUB_ENV
           elif [[ "${{ contains(steps.pr-labels.outputs.labels, 'minor') }}" == "true" ]]; then
             echo "BUMP=minor" >> $GITHUB_ENV
-          elif [[ "${{ contains(contains(github.event.pull_request.labels.*.name, 'patch') }}" == "true" ]]; then
+          elif [[ "${ contains(steps.pr-labels.outputs.labels, 'patch') }}" == "true" ]]; then
             echo "BUMP=patch" >> $GITHUB_ENV
           else
             echo "BUMP=${{ inputs.bump }}" >> $GITHUB_ENV
