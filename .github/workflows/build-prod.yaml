@@ -68,7 +68,7 @@ jobs:
           fi
 
       - name: Debug
-        run: echo "${{ BUMP }}"
+        run: echo "${{ env.BUMP }}"
 
       - name: Bump & tag version
         id: tag
