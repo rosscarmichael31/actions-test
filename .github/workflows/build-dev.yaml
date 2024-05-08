@@ -1,89 +1,89 @@
-name: Build - Dev
-
-on:
-  push:
-    branches:
-      - main
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/build
-
-permissions:
-  contents: write
-  packages: write
-  id-token: write
-
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        name: Checkout Branch
-        with:
-          token: ${{ secrets.PAT }}
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
-      - name: Generate Semantic Version
-        id: semver
-        uses: rapidstack/PR-Label-Semver-Action@v1
-
-      - run: echo ${{ steps.semver.outputs.string }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=${{ github.ref_name }}-
-
-      - name: Set environment variables
-        if: ${{ github.ref_name != 'main' }}
-        run: |
-          echo "TAGS=${{ steps.meta.outputs.tags }}" >> $GITHUB_ENV
-          echo "LABELS=${{ steps.meta.outputs.labels }}" >> $GITHUB_ENV
-          echo "NEW_VERSION=${{ steps.meta.outputs.version }}" >> $GITHUB_ENV
-
-      - name: Build and push Docker image to ghcr.io
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
-        with:
-          context: ./nginx
-          push: true
-          tags: ${{ env.TAGS }}
-          labels: ${{ env.LABELS }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Update image tag in stack_definition.yaml
-        uses: mikefarah/yq@v4.43.1
-        with:
-          cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
-            cat stack-definition.yaml
-
-      - name: Update stack-definition.yaml
-        id: commit
-        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
-        with:
-          skip_fetch: false
-          branch: ${{ github.head_ref }}
-          commit_message: |
-            [bot] Update image tag to ${{ env.NEW_VERSION }}
-
-      - name: Print container version
-        if: ${{ env.NEW_VERSION != 'undefined' }}
-        run: |
-          echo "New container version: ${{ env.NEW_VERSION }}"
-          echo ':package: New container version: `${{ env.NEW_VERSION }}`' >> $GITHUB_STEP_SUMMARY
+#name: Build - Dev
+#
+#on:
+#  push:
+#    branches:
+#      - main
+#
+#env:
+#  REGISTRY: ghcr.io
+#  IMAGE_NAME: ${{ github.repository }}/build
+#
+#permissions:
+#  contents: write
+#  packages: write
+#  id-token: write
+#
+#jobs:
+#  build-and-push:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+#        name: Checkout Branch
+#        with:
+#          token: ${{ secrets.PAT }}
+#          ref: ${{ github.head_ref }}
+#          fetch-depth: 0
+#
+#      - name: Generate Semantic Version
+#        id: semver
+#        uses: rapidstack/PR-Label-Semver-Action@v1
+#
+#      - run: echo ${{ steps.semver.outputs.string }}
+#
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#
+#      - name: Log in to the Container registry
+#        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+#        with:
+#          registry: ${{ env.REGISTRY }}
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Extract metadata (tags, labels) for Docker
+#        id: meta
+#        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+#        with:
+#          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+#          tags: |
+#            type=sha,prefix=${{ github.ref_name }}-
+#
+#      - name: Set environment variables
+#        if: ${{ github.ref_name != 'main' }}
+#        run: |
+#          echo "TAGS=${{ steps.meta.outputs.tags }}" >> $GITHUB_ENV
+#          echo "LABELS=${{ steps.meta.outputs.labels }}" >> $GITHUB_ENV
+#          echo "NEW_VERSION=${{ steps.meta.outputs.version }}" >> $GITHUB_ENV
+#
+#      - name: Build and push Docker image to ghcr.io
+#        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+#        with:
+#          context: ./nginx
+#          push: true
+#          tags: ${{ env.TAGS }}
+#          labels: ${{ env.LABELS }}
+#          cache-from: type=gha
+#          cache-to: type=gha,mode=max
+#
+#      - name: Update image tag in stack_definition.yaml
+#        uses: mikefarah/yq@v4.43.1
+#        with:
+#          cmd: |
+#            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
+#            cat stack-definition.yaml
+#
+#      - name: Update stack-definition.yaml
+#        id: commit
+#        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+#        with:
+#          skip_fetch: false
+#          branch: ${{ github.head_ref }}
+#          commit_message: |
+#            [bot] Update image tag to ${{ env.NEW_VERSION }}
+#
+#      - name: Print container version
+#        if: ${{ env.NEW_VERSION != 'undefined' }}
+#        run: |
+#          echo "New container version: ${{ env.NEW_VERSION }}"
+#          echo ':package: New container version: `${{ env.NEW_VERSION }}`' >> $GITHUB_STEP_SUMMARY
