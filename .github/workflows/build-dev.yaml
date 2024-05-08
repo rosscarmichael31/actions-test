@@ -1,7 +1,9 @@
 name: Build - Dev
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -22,6 +24,12 @@ jobs:
           token: ${{ secrets.PAT }}
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+
+      - name: Generate Semantic Version
+        id: semver
+        uses: rapidstack/PR-Label-Semver-Action@v1
+
+      - run: echo ${{ steps.semver.outputs.string }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
