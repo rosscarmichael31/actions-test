@@ -1,4 +1,4 @@
-name: Required labels
+name: Semver label
 
 permissions:
   contents: write
@@ -10,7 +10,7 @@ on:
     types: [labeled, unlabeled, opened, edited, reopened, synchronize, ready_for_review]
 jobs:
   label:
-    name: Validate Release Label and Notes
+    name: Validate Release Label Added
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,7 +19,6 @@ jobs:
         with:
           mode: validate
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          require-release-info: true
           major-label: major
           minor-label: minor
           patch-label: patch

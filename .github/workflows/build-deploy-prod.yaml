@@ -1,18 +1,19 @@
-name: Build & Deploy - Production
+name: Build & Deploy - Prod
 
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/build
+  IMAGE_NAME: ${{ github.repository }}/appruntime
 
 permissions:
   contents: write
   packages: write
   id-token: write
+  pull-requests: read
 
 jobs:
   build-check:
@@ -21,7 +22,7 @@ jobs:
     steps:
       - name: Check if build should continue
         run: |
-          echo "Push to main is not from bot -> continue build"
+          echo "Push to master is not from bot -> continue build"
 
   build-and-push:
     needs: build-check
@@ -30,13 +31,12 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         name: Checkout Branch
         with:
-          token: ${{ secrets.PAT }}
           ref: ${{ github.head_ref }}
+          token: ${{ secrets.SA_WWLDEV_REPO_PAT }}
           fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
 
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
@@ -51,7 +51,6 @@ jobs:
         with:
           mode: bump
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          require-release-info: true
           major-label: major
           minor-label: minor
           patch-label: patch
@@ -76,15 +75,18 @@ jobs:
           echo "NEW_VERSION=${{ steps.meta.outputs.version }}" >> $GITHUB_ENV
 
       - name: Build and push Docker image to ghcr.io
-        if: ${{ steps.tag.outputs.version }}
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ./nginx
+          context: .
           push: true
           tags: ${{ env.TAGS }}
           labels: ${{ env.LABELS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          file: Dockerfile_appruntime
+          secrets: |
+            "GRGIT_USER=${{ secrets.GRGIT_USER }}"
+            "GRGIT_PASS=${{ secrets.GRGIT_PASS }}"
 
       - name: Create GitHub release
         id: create_release
@@ -103,11 +105,10 @@ jobs:
         uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
-            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' stack-definition.yaml
-            cat stack-definition.yaml
+            yq -i '.stackDef.resources.applications."bulk-shipment-service".image.tag = "${{ env.NEW_VERSION }}"' appruntime/stack-definition.yaml
+            cat appruntime/stack-definition.yaml
 
-      - name: Update stack-definition.yaml
-        id: commit
+      - name: Commit changes
         if: ${{ steps.tag.outputs.version }}
         uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
         with:
@@ -125,10 +126,13 @@ jobs:
     name: Deploy stack to development
     needs: build-and-push
     uses: ./.github/workflows/deployment-dev.yaml
+    with:
+      run_liquibase: true
 
   deploy-prod:
-    name: Deploy stack to development
+    name: Deploy stack to production
     needs: deploy-dev
-    uses: ./.github/workflows/deployment-dev.yaml
+    uses: ./.github/workflows/deployment-prod.yaml
     with:
       bundle_ref: ${{ needs.deploy-dev.outputs.bundle_ref }}
+      run_liquibase: true

@@ -9,7 +9,7 @@
 ## Rollback :rewind:
 [bulk-shipment-service:1.0.0](https://github.com/rosscarmichael31/actions-test/pkgs/container/actions-test%2Fbuild/212099710?tag=1.0.0)
 
-## Liquibase Changelog 🛠:hammer:
+## Liquibase Changelog :hammer:
 ```xml
 <changeSet id="" author="">
     <tagDatabase tag=""/>
