@@ -3,7 +3,17 @@ name: Build & Deploy - Production
 on:
   push:
     branches:
-      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      bump:
+        type: choice
+        description: Select the semantic versioning bump.
+        required: true
+        options:
+          - minor
+          - patch
+          - major
 
 env:
   REGISTRY: ghcr.io
@@ -16,7 +26,7 @@ permissions:
 
 jobs:
   build-check:
-    if: ${{ !contains(github.event.head_commit.message, '[bot] Update image tag to') }}
+    if: ${{ !contains(github.event.head_commit.message, '[bot] Update image tag to') || contains(github.event.pull_request.labels.*.name, 'skip build') == true}}
     runs-on: ubuntu-latest
     steps:
       - name: Check if build should continue
@@ -45,19 +55,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump and Tag Version
+      - name: Get bump
+        run: |
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'major') }}" == "true" ]]; then
+            echo "BUMP=major" >> $GITHUB_ENV
+          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" == "true" ]]; then
+            echo "BUMP=minor" >> $GITHUB_ENV
+          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'patch') }}" == "true" ]]; then
+            echo "BUMP=patch" >> $GITHUB_ENV
+          else
+            echo "BUMP=${{ inputs.bump }}" >> $GITHUB_ENV
+          fi
+
+      - name: Debug
+        run: echo "${{ BUMP }}"
+
+      - name: Bump & tag version
         id: tag
-        uses: jefflinse/pr-semver-bump@v1.6.0
+        uses: mathieudutour/github-tag-action@v6.2
         with:
-          mode: bump
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          require-release-info: true
-          major-label: major
-          minor-label: minor
-          patch-label: patch
-          noop-labels:
-            skip build
-          base-branch: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: master
+          default_bump: ${{ github.event.inputs.bump }}
+          fetch_all_tags: true
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -121,14 +141,14 @@ jobs:
           echo "New container version: ${{ env.NEW_VERSION }}"
           echo ':package: New container version: `${{ env.NEW_VERSION }}`' >> $GITHUB_STEP_SUMMARY
 
-  deploy-dev:
-    name: Deploy stack to development
-    needs: build-and-push
-    uses: ./.github/workflows/deployment-dev.yaml
-
-  deploy-prod:
-    name: Deploy stack to development
-    needs: deploy-dev
-    uses: ./.github/workflows/deployment-dev.yaml
-    with:
-      bundle_ref: ${{ needs.deploy-dev.outputs.bundle_ref }}
+#  deploy-dev:
+#    name: Deploy stack to development
+#    needs: build-and-push
+#    uses: ./.github/workflows/deployment-dev.yaml
+#
+#  deploy-prod:
+#    name: Deploy stack to development
+#    needs: deploy-dev
+#    uses: ./.github/workflows/deployment-dev.yaml
+#    with:
+#      bundle_ref: ${{ needs.deploy-dev.outputs.bundle_ref }}
